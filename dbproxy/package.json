@@ -1,0 +1,14 @@
+{
+  "name": "dbproxy",
+  "author": "JW",
+  "scripts": {
+    "start": "node dbproxy.js"
+  },
+  "dependencies": {
+    "aws-sdk": "*",
+    "body-parser": "*",
+    "express": "*",
+    "minimist": "*",
+    "morgan": "*"
+  }
+}
