@@ -9,7 +9,7 @@ const SimClient = require('./sim_client.js')
 
 app.use(express.static('public'));
 
-app.get("/clients",(req,response)=>{
+app.get("/",(req,response)=>{
     let send = (args)=>{
         response.send(args);
     }
