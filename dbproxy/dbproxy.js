@@ -29,9 +29,9 @@ app.get('/read', function (req, res) {
         };
         docClient.query(params, function(err, data) {
             if (err)
-                req.status(500).send(JSON.stringify(err));
+                res.status(500).send(JSON.stringify(err));
             else
-                req.status(200).send(data);
+                res.status(200).send(data);
         })
     } else if (req.query.depTime && req.query.depRegionID) {
         var params = {
@@ -44,27 +44,27 @@ app.get('/read', function (req, res) {
         };
         docClient.query(params, function (err, data) {
             if (err)
-                req.status(500).send(JSON.stringify(err));
+                res.status(500).send(JSON.stringify(err));
             else
-                req.status(200).send(data);
+                res.status(200).send(data);
         })
-    } else req.status(403).send('Invalid');
+    } else res.status(403).send('Invalid');
 });
 
 app.post('/write', function (req, res) {
-    if (request.query.depRegionID && request.query.destRegionID && request.query.depTime && request.query.arrTime && request.query.driverID) {
+    if (req.query.depRegionID && req.query.destRegionID && req.query.depTime && req.query.arrTime && req.query.driverID) {
 
         var params = {
             TableName: "depRecord",
             Item:{
-                "depRegionID": request.query.depRegionID,
-                "depTime": request.query.depTime,
-                "driverID": request.query.driverID
+                "depRegionID": req.query.depRegionID,
+                "depTime": req.query.depTime,
+                "driverID": req.query.driverID
             }
         }
         docClient.put(req.query, function (err, data) {
             if (err) {
-                req.status(500).send(JSON.stringify(err));
+                res.status(500).send(JSON.stringify(err));
             }
         })
 
@@ -72,20 +72,20 @@ app.post('/write', function (req, res) {
         var params = {
             TableName: "arrRecord",
             Item:{
-                "destRegionID": request.query.destRegionID,
-                "arrTime": request.query.arrTime,
-                "driverID": request.query.driverID
+                "destRegionID": req.query.destRegionID,
+                "arrTime": req.query.arrTime,
+                "driverID": req.query.driverID
             }
         }
         docClient.put(req.query, function (err, data) {
             if (err) {
-                req.status(500).send(JSON.stringify(err));
+                res.status(500).send(JSON.stringify(err));
             }
         })
 
         if(res.statusCode != 500)
-            req.status(200).send("Suceeded");
-    } else req.status(403).send("Invalid");
+            res.status(200).send("Suceeded");
+    } else res.status(403).send("Invalid");
 });
 
 app.listen(argv.port);
