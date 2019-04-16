@@ -52,39 +52,49 @@ app.get('/read', function (req, res) {
 });
 
 app.post('/write', function (req, res) {
-    if (req.query.depRegionID && req.query.destRegionID && req.query.depTime && req.query.arrTime && req.query.driverID) {
+    if (req.body.depRegionID && req.body.destRegionID && req.body.depTime && req.body.arrTime && req.body.driverID) {
+        var finalStatus = 200;
+        var finalResp;
 
-        var params = {
-            TableName: "depRecord",
+        var params1 = {
+            TableName: "depRecords",
             Item:{
-                "depRegionID": req.query.depRegionID,
-                "depTime": req.query.depTime,
-                "driverID": req.query.driverID
+                "depRegionID": req.body.depRegionID,
+                "depTime": req.body.depTime,
+                "driverID": req.body.driverID
             }
         }
-        docClient.put(req.query, function (err, data) {
+        docClient.put(params1, function (err, data) {
             if (err) {
-                res.status(500).send(JSON.stringify(err));
+                finalStatus = 500;
+                finalResp = JSON.stringify(err);
+                res.status(finalStatus).send(finalStatus);
+            }else{
+                var params2 = {
+                    TableName: "arrRecords",
+                    Item:{
+                        "destRegionID": req.body.destRegionID,
+                        "arrTime": req.body.arrTime,
+                        "driverID": req.body.driverID
+                    }
+                }
+                docClient.put(params2, function (err, data) {
+                    if (err) {
+                        finalStatus = 500;
+                        finalResp = JSON.stringify(err);
+                        res.status(finalStatus).send(finalStatus);
+                    }else{
+
+                        if(res.statusCode != 500)
+                            res.status(200).send("Suceeded");
+                        else{
+                            res.status(res.statusCode).send("Failed");
+                        }
+                        
+                    }
+                })
             }
         })
-
-
-        var params = {
-            TableName: "arrRecord",
-            Item:{
-                "destRegionID": req.query.destRegionID,
-                "arrTime": req.query.arrTime,
-                "driverID": req.query.driverID
-            }
-        }
-        docClient.put(req.query, function (err, data) {
-            if (err) {
-                res.status(500).send(JSON.stringify(err));
-            }
-        })
-
-        if(res.statusCode != 500)
-            res.status(200).send("Suceeded");
     } else res.status(403).send("Invalid");
 });
 
