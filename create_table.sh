@@ -1,15 +1,15 @@
 aws dynamodb create-table \
-    --table-name depRecords \
+    --table-name PURecords \
     --attribute-definitions \
-        AttributeName=depRegionID,AttributeType=N \
-        AttributeName=depTime,AttributeType=N \
-    --key-schema AttributeName=depRegionID,KeyType=HASH AttributeName=depTime,KeyType=RANGE \
-    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=1
+        AttributeName=PULocationID,AttributeType=N \
+        AttributeName=PUTime,AttributeType=N \
+    --key-schema AttributeName=PULocationID,KeyType=HASH AttributeName=PUTime,KeyType=RANGE \
+    --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=2
 
 aws dynamodb create-table \
-    --table-name arrRecords \
+    --table-name DORecords \
     --attribute-definitions \
-        AttributeName=destRegionID,AttributeType=N \
-        AttributeName=arrTime,AttributeType=N \
-    --key-schema AttributeName=destRegionID,KeyType=HASH AttributeName=arrTime,KeyType=RANGE \
-    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=1
+        AttributeName=DOLocationID,AttributeType=N \
+        AttributeName=DOTime,AttributeType=N \
+    --key-schema AttributeName=DOLocationID,KeyType=HASH AttributeName=DOTime,KeyType=RANGE \
+    --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=2

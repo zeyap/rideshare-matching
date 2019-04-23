@@ -1,7 +1,8 @@
 const AWS = require('aws-sdk');
+const AmazonDaxClient = require('amazon-dax-client');
 const express = require('express');
 const bodyParser = require('body-parser');
-var morgan  = require('morgan')
+var morgan  = require('morgan');
 const app = express();
 const argv = require('minimist')(process.argv.slice(1));
 
@@ -13,36 +14,38 @@ app.use(bodyParser.text({ type : "text/*" }));
 
 if (!argv.port)
     argv.port = 8888;
-AWS.config.loadFromPath('./config.json');
+AWS.config.loadFromPath("./config.json");
 console.log(AWS.config.credentials);
+var dax = new AmazonDaxClient({endpoints: ["dax-cluster.ycntqw.clustercfg.dax.use1.cache.amazonaws.com:8111"], region: "us-east-1c"});
 var docClient = new AWS.DynamoDB.DocumentClient();
+var daxClient = new AWS.DynamoDB.DocumentClient({service: dax});
 
 app.get('/read', function (req, res) {
-    if(req.query.arrTime && req.query.destRegionID) {
-        var params = {
-            TableName : "arrRecord",
-            KeyConditionExpression: "destRegionID = :destRegionID and arrTime > :fromTime",
+    if(req.body.DOTime && req.body.DOLocationID) {
+        let params = {
+            TableName : "DORecords",
+            KeyConditionExpression: "DOLocationID = :DOLocationID and DOTime > :fromTime",
             ExpressionAttributeValues: {
-                ":fromTime": req.query.arrTime,
-                ":destRegionID": req.query.destRegionID
+                ":fromTime": req.body.DOTime,
+                ":DOLocationID": req.body.DOLocationID
             }
         };
-        docClient.query(params, function(err, data) {
+        daxClient.query(params, function(err, data) {
             if (err)
                 res.status(500).send(JSON.stringify(err));
             else
                 res.status(200).send(data);
         })
-    } else if (req.query.depTime && req.query.depRegionID) {
-        var params = {
-            TableName: "depRecord",
-            KeyConditionExpression: "depRegionID = :depRegionID and depTime > :fromTime",
+    } else if (req.body.PUTime && req.body.PULocationID) {
+        let params = {
+            TableName: "PURecords",
+            KeyConditionExpression: "PULocationID = :PULocationID and PUTime > :fromTime",
             ExpressionAttributeValues: {
-                ":fromTime": req.query.depTime,
-                ":depRegionID": req.query.depRegionID
+                ":fromTime": req.body.PUTime,
+                ":PULocationID": req.body.PULocationID
             }
         };
-        docClient.query(params, function (err, data) {
+        daxClient.query(params, function (err, data) {
             if (err)
                 res.status(500).send(JSON.stringify(err));
             else
@@ -51,51 +54,49 @@ app.get('/read', function (req, res) {
     } else res.status(403).send('Invalid');
 });
 
-app.post('/write', function (req, res) {
-    if (req.body.depRegionID && req.body.destRegionID && req.body.depTime && req.body.arrTime && req.body.driverID) {
+app.post('/PU', function (req, res) {
+    if (req.body.PULocationID && req.body.PUTime && req.body.passenger_count) {
         var finalStatus = 200;
         var finalResp;
-
-        var params1 = {
-            TableName: "depRecords",
+        let params = {
+            TableName: "PURecords",
             Item:{
-                "depRegionID": req.body.depRegionID,
-                "depTime": req.body.depTime,
-                "driverID": req.body.driverID
+                "PULocationID": req.body.PULocationID,
+                "PUTime": req.body.PUTime,
+                "passenger_count": req.body.passenger_count
             }
         }
-        docClient.put(params1, function (err, data) {
+        docClient.put(params, function (err, data) {
             if (err) {
-                finalStatus = 500;
-                finalResp = JSON.stringify(err);
-                res.status(finalStatus).send(finalStatus);
-            }else{
-                var params2 = {
-                    TableName: "arrRecords",
-                    Item:{
-                        "destRegionID": req.body.destRegionID,
-                        "arrTime": req.body.arrTime,
-                        "driverID": req.body.driverID
-                    }
-                }
-                docClient.put(params2, function (err, data) {
-                    if (err) {
-                        finalStatus = 500;
-                        finalResp = JSON.stringify(err);
-                        res.status(finalStatus).send(finalStatus);
-                    }else{
+	        res.status(500).send(err);
+	    }
+	    else res.status(200).send(data);
+        }); 
+    }
+    else res.status(403).send("Invalid Body");
+});
 
-                        if(res.statusCode != 500)
-                            res.status(200).send("Suceeded");
-                        else{
-                            res.status(res.statusCode).send("Failed");
-                        }
-                        
-                    }
-                })
-            }
-        })
-    } else res.status(403).send("Invalid");
+app.post('/DO', function (req, res) {
+    if (req.body.PULocationID && req.body.PUTime && req.body.DOLocationID && req.body.DOTime && req.body.passenger_count && req.body.trip_distance) {
+	let params = {
+	    TableName: "DORecords",
+	    Item:{
+		"DOLocationID": req.body.DOLocationID,
+		"DOTime": req.body.DOTime,
+		"PULocationID": req.body.PULocationID,
+		"PUTime": req.body.PUTime,
+		"trip_distance": req.body.trip_distance,
+		"passenger_count": req.body.passenger_count
+	    }
+	}
+	docClient.put(params, function (err, data) {
+	    if (err) {
+		res.status(500).send(err);
+	    }
+	    else res.status(200).send(data);
+	});
+    } 
+    else res.status(403).send("Invalid Body");
 });
 
 app.listen(argv.port);

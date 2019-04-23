@@ -5,10 +5,12 @@
     "start": "node dbproxy.js"
   },
   "dependencies": {
+    "amazon-dax-client": "^1.2.1",
     "aws-sdk": "*",
     "body-parser": "*",
     "express": "*",
     "minimist": "*",
-    "morgan": "*"
+    "morgan": "*",
+    "request": "^2.88.0"
   }
 }
