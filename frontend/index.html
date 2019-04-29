@@ -3,25 +3,30 @@
 <head>
 <title>Page Title</title>
 <link rel="stylesheet" href="style.css" type="text/css"/>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
 </head>
 <body>
 
-    <div id="search-header">
-        <div id="search-box"><img src="img/search.png"/> <input style="background-color:transparent; vertical-align: text-bottom; color:#e2e2e2; font-size: 0.8em; font-weight: lighter; border:none; height: 40px;" placeholder="Search..."/></div>
-    </div>
+    <svg width="100vw" height="100vh" id="map"></svg>
+    <script src="drawmap.js"></script>
 
+    <div id="search-header">
+        <div id="search-box"><img style="margin-left:10px" width="20px" height="40px" src="img/search.svg"/> <input style="background-color:transparent; vertical-align: text-bottom; color:#e2e2e2; font-size: 0.8em; font-weight: lighter; border:none; height: 40px;" placeholder="Search..."/></div>
+    </div>
+    
     <div id="result-area">
         <div class="result-box shadowed">
             <div class="line"><h1>No.1 Central Park</h1> <div class="distance">10 miles</div></div>
-            <div class="line"><h2><img src="img/passenger.png"/> Estimated Passengers</h2> <div class="number">280</div></div>
-            <div class="line"><h2><img src="img/profit.png"/> Estimated Profit</h2> <div class="number">$ 46.87</div></div>
+            <div class="line"><h2><img width="20px" height="20px" src="img/passenger.svg"/> Estimated Passengers</h2> <div class="number">280</div></div>
+            <div class="line"><h2><img width="20px" height="20px" src="img/profit.svg"/> Estimated Profit</h2> <div class="number">$ 46.87</div></div>
             <div class="line" style="height: 20px;"></div>
         </div>
         <div class="result-box shadowed"></div>
         <div class="result-box shadowed"></div>
     </div>
 
-    <div id="focus-btn" class="shadowed"><img src="img/focus.png"/></div>
+    <div id="focus-btn" class="shadowed"><img width="20px" height="20px" src="img/focus.svg"/></div>
 
 
 
