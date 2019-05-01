@@ -16,17 +16,18 @@ if (!argv.port)
     argv.port = 8888;
 AWS.config.loadFromPath("./config.json");
 console.log(AWS.config.credentials);
-var dax = new AmazonDaxClient({endpoints: ["dax-cluster.ycntqw.clustercfg.dax.use1.cache.amazonaws.com:8111"], region: "us-east-1c"});
+var dax = new AmazonDaxClient({endpoints: ["dax-cluster2.ycntqw.clustercfg.dax.use1.cache.amazonaws.com:8111"], region: "us-east-1"});
 var docClient = new AWS.DynamoDB.DocumentClient();
 var daxClient = new AWS.DynamoDB.DocumentClient({service: dax});
 
 app.get('/read', function (req, res) {
-    if(req.body.DOTime && req.body.DOLocationID) {
+    if(req.body.fromDOTime && req.body.toDOTime && req.body.DOLocationID) {
         let params = {
             TableName : "DORecords",
-            KeyConditionExpression: "DOLocationID = :DOLocationID and DOTime > :fromTime",
+            KeyConditionExpression: "DOLocationID = :DOLocationID and DOTime between :fromTime and :toTime",
             ExpressionAttributeValues: {
-                ":fromTime": req.body.DOTime,
+                ":fromTime": req.body.fromDOTime,
+		":toTime": req.body.toDOTime,
                 ":DOLocationID": req.body.DOLocationID
             }
         };
@@ -36,12 +37,13 @@ app.get('/read', function (req, res) {
             else
                 res.status(200).send(data);
         })
-    } else if (req.body.PUTime && req.body.PULocationID) {
+    } else if (req.body.fromPUTime && req.body.toPUTime && req.body.PULocationID) {
         let params = {
             TableName: "PURecords",
-            KeyConditionExpression: "PULocationID = :PULocationID and PUTime > :fromTime",
+            KeyConditionExpression: "PULocationID = :PULocationID and PUTime between :fromTime and :toTime",
             ExpressionAttributeValues: {
-                ":fromTime": req.body.PUTime,
+                ":fromTime": req.body.fromPUTime,
+		":toTime": req.body.toPUTime,
                 ":PULocationID": req.body.PULocationID
             }
         };
