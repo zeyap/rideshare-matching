@@ -134,43 +134,63 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             searchResults.forEach(e=>e.style['pointer-events'] = 'auto')
     }
     
-    searchInput.addEventListener('input',function(evt){
-        searchValue = searchInput.value;
-        let match = [];
-        searchResult.textContent='';
-        if(searchValue!==''){
-            match = matchResult(nycLookup,searchValue);
-        }else{
-            showEmptyResult();
-        }
+    function timedSearch(){
         
-        if(match.length===0){
-            showEmptyResult();
-            disableSearchResult();
-        }else{
-            enableSearchResult();
+        function search(){
+
+            searchValue = searchInput.value;
+            let match = [];
+            searchResult.textContent='';
+            if(searchValue!==''){
+                match = matchResult(nycLookup,searchValue);
+            }else{
+                showEmptyResult();
+            }
+            
+            if(match.length===0){
+                showEmptyResult();
+                disableSearchResult();
+            }else{
+                enableSearchResult();
+            }
+
+            match.forEach((elem)=>{
+                var item = document.createElement('li');
+                item.innerHTML = elem.Zone +' <span style="opacity: 0.5"> ' +elem.Borough+'</span>';
+
+                item.addEventListener('click',()=>{
+                    
+                    if(elem.Borough!=='Manhattan'){
+                        searchInput.placeholder = 'Sorry, support is only within Manhattan now!'
+                        searchInput.value=''
+                        return;
+                    }else{
+                        searchInput.value = elem.Zone;
+                    }
+                    queryPrediction(elem)();
+                })
+                searchResult.appendChild(item);
+            });
+            searchResults = searchResult.querySelectorAll('li');
         }
 
-        match.forEach((elem)=>{
-            var item = document.createElement('li');
-            item.innerHTML = elem.Zone +' <span style="opacity: 0.5"> ' +elem.Borough+'</span>';
+        var timer = null;
+        var threshold = 800;
+        var lastTime = null;
 
-            item.addEventListener('click',()=>{
-                
-                if(elem.Borough!=='Manhattan'){
-                    searchInput.placeholder = 'Sorry, support is only within Manhattan now!'
-                    searchInput.value=''
-                    return;
-                }else{
-                    searchInput.value = elem.Zone;
-                }
-                queryPrediction(elem)();
-            })
-            searchResult.appendChild(item);
-        });
-        searchResults = searchResult.querySelectorAll('li');
+        return (evt)=>{
+            var currTime = Number(new Date());
+            lastTime = currTime;
+            if(currTime-lastTime<threshold){
+                clearTimeout(timer);
+            }
+            timer = setTimeout(() => {
+                search();
+            }, threshold);
+        }
         
-    })
+    }
+    searchInput.addEventListener('input',timedSearch())
     
     document.addEventListener('click',(evt)=>{
         if(!searchArea.contains(evt.target))disableSearchResult()

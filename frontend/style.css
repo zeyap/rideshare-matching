@@ -193,6 +193,7 @@ img{
     background: #4e517573;
     border-radius: 20px;
     padding: 10px 20px;
+    opacity: 0;
 }
 #search-dropdown>li{
     list-style-type: none;
