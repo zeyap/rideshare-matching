@@ -2,8 +2,8 @@ const drawmap = async ()=>{
     const nyc = await d3.json("taxi_zones.topojson");
     
     const zonesMesh = topojson.mesh(nyc, nyc.objects.taxi_zones);
-    // const scaleExtent = [0.001,0.005], translateExtent=[[0,0],[10,10]];
-    const scale = 0.005;
+    
+    const scale = 0.01;
     let map = d3.select('svg#map');
     const mapWidth = map.attr("width"), 
         mapHeight = map.attr("height");
@@ -13,22 +13,28 @@ const drawmap = async ()=>{
     var zones = topojson.feature(nyc,nyc.objects.taxi_zones).features;
     
     let viewport = map.append('g')
-    .attr('transform','scale('+scale+') translate('+(-884900)+','+(-120000)+')');
+    .attr('transform','scale('+scale+')');
+    
     var zonesMap = viewport.selectAll('path')
     .data(zones)
     .enter().append('path');
+    
     zonesMap.attr("class", "zones").attr('d',path)
     .on("click", center);
     var centered=null;
 
+    centerLocationId(43);
+
     const pointRadius = 7/scale;
+    const predictionNum = 5;
     let points = [];
     points.push([
         viewport.append('circle').attr('class','points points-0')
         .attr('x',0).attr('y',0).attr('r',pointRadius),
         viewport.append('circle').attr('class','points points-0')
         .attr('x',0).attr('y',0).attr('r',pointRadius*2).attr('opacity','0.3')]);
-    for(let p=1;p<=4;p++){
+        
+    for(let p=1;p<=predictionNum;p++){
         points.push([
             viewport.append('circle').attr('class','points points-'+p)
             .attr('x',0).attr('y',0).attr('r',pointRadius),
@@ -73,7 +79,7 @@ const drawmap = async ()=>{
             .duration(750)
             .attr("transform", "scale("+scale+") translate(" + x + "," + y + ")");
     }
-    var centerLocationId = (locationId)=>{
+    function centerLocationId (locationId){
         center(zones[locationId-1])
     }
 
@@ -106,21 +112,26 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
     var searchInput = document.getElementById('search-input');
     var searchValue = '';
     var searchResult = document.getElementById('search-dropdown');
+    var searchResults = null;
     var predictTemplate = document.getElementById('result-box-template');
     var emptyResultTemplate = document.getElementById('result-box-empty-template');
     var predictResult = document.getElementById('result-area');
     var focusBtn = document.getElementById('focus-btn');
     var points = d3.selectAll('circle.points');
+    var searchArea = document.getElementById('search-box');
     showEmptyResult();
     disableSearchResult()
 
     function disableSearchResult(){
         searchResult.style.opacity=0;
-        searchResult['pointer-events'] = 'none';
+        if(searchResults)
+            searchResults.forEach(e=>e.style['pointer-events'] = 'none')
+        
     }
     function enableSearchResult(){
         searchResult.style.opacity=1;
-        searchResult['pointer-events'] = 'auto';
+        if(searchResults)
+            searchResults.forEach(e=>e.style['pointer-events'] = 'auto')
     }
     
     searchInput.addEventListener('input',function(evt){
@@ -147,7 +158,8 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             item.addEventListener('click',()=>{
                 
                 if(elem.Borough!=='Manhattan'){
-                    searchInput.value = 'Sorry, support is only within Manhattan now!'
+                    searchInput.placeholder = 'Sorry, support is only within Manhattan now!'
+                    searchInput.value=''
                     return;
                 }else{
                     searchInput.value = elem.Zone;
@@ -156,8 +168,14 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             })
             searchResult.appendChild(item);
         });
+        searchResults = searchResult.querySelectorAll('li');
         
     })
+    
+    document.addEventListener('click',(evt)=>{
+        if(!searchArea.contains(evt.target))disableSearchResult()
+    })
+
 
     function showEmptyResult(){
         predictResult.innerHTML="";
@@ -195,6 +213,11 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             },
             {
                 locationID:40,
+                distance:20,
+                estimatedPassengers: 500,
+                estimatedProfit: 80.96
+            },{
+                locationID:70,
                 distance:20,
                 estimatedPassengers: 500,
                 estimatedProfit: 80.96
