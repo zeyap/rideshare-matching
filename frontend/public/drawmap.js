@@ -1,3 +1,21 @@
+(function() {
+    var cors_api_host = 'cors-anywhere.herokuapp.com';
+    var cors_api_url = 'https://' + cors_api_host + '/';
+    var slice = [].slice;
+    var origin = window.location.protocol + '//' + window.location.host;
+    var open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function() {
+        var args = slice.call(arguments);
+        var targetOrigin = /^https?:\/\/([^\/]+)/i.exec(args[1]);
+        if (targetOrigin && targetOrigin[0].toLowerCase() !== origin &&
+            targetOrigin[1] !== cors_api_host) {
+            args[1] = cors_api_url + args[1];
+        }
+        return open.apply(this, args);
+    };
+})();
+const host='http://127.0.0.1:3000';
+
 const drawmap = async ()=>{
     const nyc = await d3.json("taxi_zones.topojson");
     
@@ -206,42 +224,26 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
     }
 
     function queryPrediction(elem){
-        return ()=>{
+        return async ()=>{
             focusBtn.addEventListener('click',()=>{
                 centerLocationId(elem.LocationID)
             })
             centerLocationId(elem.LocationID);
             locatePointByLocationID(elem.LocationID,0)
             
-            let predictions = [{
-                locationID:9,
-                distance:10,
-                estimatedPassengers: 200,
-                estimatedProfit: 49.87
-            },
-            {
-                locationID:10,
-                distance:20,
-                estimatedPassengers: 500,
-                estimatedProfit: 80.96
-            },
-            {
-                locationID:50,
-                distance:20,
-                estimatedPassengers: 500,
-                estimatedProfit: 80.96
-            },
-            {
-                locationID:40,
-                distance:20,
-                estimatedPassengers: 500,
-                estimatedProfit: 80.96
-            },{
-                locationID:70,
-                distance:20,
-                estimatedPassengers: 500,
-                estimatedProfit: 80.96
-            }]
+            var predictions;
+            await axios.get(host+'/ml/customer',{
+                params:{
+                    'time': "2018-1-20 10:10:10", 'PULocationID': 90
+                }
+            })
+            .then(response=>{
+                predictions= response.data.predictions
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+            
             predictions = predictions.slice(0,5);
             predictResult.innerHTML='';
             
