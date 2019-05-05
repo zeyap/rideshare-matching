@@ -4,7 +4,7 @@ var fs = require('fs')
 const path = require('path');
 var request = require('request')
 const dbUrl = 'http://a06e0d2c96d5b11e983460ebc79e1f0f-1093846990.us-east-1.elb.amazonaws.com:8888';
-const mlUrl = "http://a16c0db6c6d6511e983460ebc79e1f0f-205779608.us-east-1.elb.amazonaws.com:8889";
+const mlUrl = "http://ae2c07cc06efd11e983460ebc79e1f0f-113199550.us-east-1.elb.amazonaws.com:8889";
 
 app.use(express.static('public'));
 
@@ -15,13 +15,22 @@ app.get('/', function (req, res) {
 })
 
 app.get('/ml/customer',function(req,res){
-  // let {time,PULocationID} = req.query;
-  // request.get(mlUrl+'/customer', {
-  //   json: true,
-  //   body: {'time': time, 'PULocationID': PULocationID}
-  // },function(err, response) {
-  //   console.log(err,response);
-  // })
+  let {time,PULocationID} = req.query;
+  let params = {
+    'time': time, 
+    'PULocationID': parseInt(PULocationID)
+  }
+  request.get(mlUrl+'/customer', {
+    json: true,
+    body: params
+  },function(err, response) {
+    if(err){
+      console.log(err)
+    }else{
+      console.log(response.body)
+    }
+    
+  })
 
   res.send({
     predictions: [{
