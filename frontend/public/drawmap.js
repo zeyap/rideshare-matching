@@ -15,7 +15,7 @@
 //     };
 // })();
 
-const host='http://127.0.0.1:3000';
+const host='http://localhost:3000';
 
 const drawmap = async ()=>{
     const nyc = await d3.json("taxi_zones.topojson");
