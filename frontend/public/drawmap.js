@@ -244,7 +244,7 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             
             await axios.get(host+'/ml/customer',{
                 params:{
-                    'time': (2018)+'-'+(1)+'-'+now.getDate()+' '+padZero(now.getHours())+':'+padZero(now.getMinutes())+':'+padZero(now.getSeconds()),
+                    'time': (2018)+'-'+(2)+'-'+now.getDate()+' '+padZero(now.getHours())+':'+padZero(now.getMinutes())+':'+padZero(now.getSeconds()),
                     'locationID': parseInt(elem.LocationID)
                     //1900+now.getYear()
                     //now.getMonth()+1
