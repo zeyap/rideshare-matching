@@ -37,9 +37,11 @@ const drawmap = async ()=>{
     var zonesMap = viewport.selectAll('path')
     .data(zones)
     .enter().append('path');
+    var coords = {};
     
     zonesMap.attr("class", "zones").attr('d',path)
     .on("click", center);
+    
     var centered=null;
 
     centerLocationId(43);
@@ -60,15 +62,13 @@ const drawmap = async ()=>{
             viewport.append('circle').attr('class','points points-'+p)
             .attr('x',0).attr('y',0).attr('r',pointRadius*1.5).attr('opacity','0.3')]);
     }
-    
+
     function locatePoint(d,point, locationID){
         let coordinates = d.geometry.coordinates;
         let meanX = (Math.min(...coordinates[0].map(e=>parseFloat(e[0])))+Math.max(...coordinates[0].map(e=>parseFloat(e[0]))))/2, 
         meanY = (Math.min(...coordinates[0].map(e=>parseFloat(e[1])))+Math.max(...coordinates[0].map(e=>parseFloat(e[1]))))/2;
         
         point.forEach(p=>p.attr('transform','translate('+parseInt(meanX)+','+parseInt(meanY)+')'))
-        
-
 
     }
     function locatePointByLocationID(locationID,pointID){
