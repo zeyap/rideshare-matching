@@ -38,7 +38,7 @@ body{
 }
 
 #result-area{
-    pointer-events: none;
+    /* pointer-events: none; */
     position: absolute;
     bottom: 0px;
     left: 0;
