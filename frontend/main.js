@@ -3,8 +3,10 @@ var app = express()
 var fs = require('fs')
 const path = require('path');
 var request = require('request')
-const dbUrl = 'http://a06e0d2c96d5b11e983460ebc79e1f0f-1093846990.us-east-1.elb.amazonaws.com:8888';
-const mlUrl = "http://ae2c07cc06efd11e983460ebc79e1f0f-113199550.us-east-1.elb.amazonaws.com:8889";
+var async = require('async');
+const dbHost = 'http://a06e0d2c96d5b11e983460ebc79e1f0f-1093846990.us-east-1.elb.amazonaws.com:8888';
+const mlHost = "http://a6c3f9e916fab11e983460ebc79e1f0f-1633208552.us-east-1.elb.amazonaws.com:8889";
+const manhattan_zones = require('./manhattan_zones.json')
 
 app.use(express.static('public'));
 
@@ -14,55 +16,67 @@ app.get('/', function (req, res) {
   
 })
 
-app.get('/ml/customer',function(req,res){
-  let {time,PULocationID} = req.query;
-  let params = {
-    'time': time, 
-    'PULocationID': parseInt(PULocationID)
+app.get('/ml/customer', function(req,res){
+  let {time,locationID} = req.query;
+  console.log(time,locationID)
+  if(!manhattan_zones[locationID]){
+    res.send(null);
+    return;
   }
-  request.get(mlUrl+'/customer', {
-    json: true,
-    body: params
-  },function(err, response) {
-    if(err){
-      console.log(err)
-    }else{
-      console.log(response.body)
+  var result = {};
+
+  async.forEachOf(manhattan_zones,(zone, PULocationID,callback)=>{
+    if(PULocationID === locationID){callback();return;}
+    let params = {
+      'time': time, 
+      'PULocationID': parseInt(PULocationID)
     }
     
-  })
+    request.get(mlHost+'/customer', {
+      json: true,
+      body: params
+    },function(err, response) {
+      if(err){
+        console.log(err)
+      }else{
+        result[params.PULocationID] = result[params.PULocationID]||{};
+        result[params.PULocationID]['locationID'] = params.PULocationID;
 
-  res.send({
-    predictions: [{
-      locationID:9,
-      distance:10,
-      estimatedPassengers: 200,
-      estimatedProfit: 49.87
-  },
-  {
-      locationID:10,
-      distance:20,
-      estimatedPassengers: 500,
-      estimatedProfit: 80.96
-  },
-  {
-      locationID:50,
-      distance:20,
-      estimatedPassengers: 500,
-      estimatedProfit: 80.96
-  },
-  {
-      locationID:40,
-      distance:20,
-      estimatedPassengers: 500,
-      estimatedProfit: 80.96
-  },{
-      locationID:70,
-      distance:20,
-      estimatedPassengers: 500,
-      estimatedProfit: 80.96
-  }]
+        result[params.PULocationID]['estimatedPassengers'] = response.body;
+
+        request.get(mlHost+'/fare', {
+          json: true,
+          body: params
+        },function(err, response) {
+          if(err){
+            console.log(err)
+          }else{
+            result[params.PULocationID]['estimatedProfit'] = response.body.toFixed(2);
+            result[params.PULocationID].distance = 10;
+            callback();
+            
+          }
+        })
+      }
+    })
+    
+  },(err)=>{
+    if(err){
+      console.log('err',err);
+    }else{
+      let sortedResult = [];
+      for(let r in result){
+        sortedResult.push(result[r]);
+      }
+      sortedResult.sort((a,b)=>{
+        return parseFloat(b['estimatedPassengers'])*parseFloat(b['estimatedProfit'])-parseFloat(a['estimatedPassengers'])*parseFloat(a['estimatedProfit']);
+      })
+      // console.log(result,sortedResult)
+      res.send(sortedResult.slice(0,5));
+    }
   })
+  
+
 })
 
 app.listen(3000,function(err){

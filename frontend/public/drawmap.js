@@ -14,6 +14,7 @@
 //         return open.apply(this, args);
 //     };
 // })();
+
 const host='http://127.0.0.1:3000';
 
 const drawmap = async ()=>{
@@ -59,16 +60,19 @@ const drawmap = async ()=>{
             viewport.append('circle').attr('class','points points-'+p)
             .attr('x',0).attr('y',0).attr('r',pointRadius*1.5).attr('opacity','0.3')]);
     }
-
-    function locatePoint(d,point){
+    
+    function locatePoint(d,point, locationID){
         let coordinates = d.geometry.coordinates;
         let meanX = (Math.min(...coordinates[0].map(e=>parseFloat(e[0])))+Math.max(...coordinates[0].map(e=>parseFloat(e[0]))))/2, 
         meanY = (Math.min(...coordinates[0].map(e=>parseFloat(e[1])))+Math.max(...coordinates[0].map(e=>parseFloat(e[1]))))/2;
         
         point.forEach(p=>p.attr('transform','translate('+parseInt(meanX)+','+parseInt(meanY)+')'))
+        
+
+
     }
     function locatePointByLocationID(locationID,pointID){
-        locatePoint(zones[locationID-1],points[pointID]);
+        locatePoint(zones[locationID-1],points[pointID],locationID);
     }
 
     function center(d){
@@ -223,6 +227,10 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
         points.attr('transform','translate(0,0)')
     }
 
+    function padZero(num){
+        return num<10?('0'+num):num;
+    }
+
     function queryPrediction(elem){
         return async ()=>{
             focusBtn.addEventListener('click',()=>{
@@ -232,13 +240,19 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             locatePointByLocationID(elem.LocationID,0)
             
             var predictions;
+            var now = new Date();
+            
             await axios.get(host+'/ml/customer',{
                 params:{
-                    'time': "2018-1-20+10:10:10", 'PULocationID': 90
+                    'time': (2018)+'-'+(1)+'-'+now.getDate()+' '+padZero(now.getHours())+':'+padZero(now.getMinutes())+':'+padZero(now.getSeconds()),
+                    'locationID': parseInt(elem.LocationID)
+                    //1900+now.getYear()
+                    //now.getMonth()+1
                 }
             })
             .then(response=>{
-                predictions= response.data.predictions
+                predictions= response.data;
+                // console.log(predictions)
             })
             .catch(function (error) {
                 console.log(error);
