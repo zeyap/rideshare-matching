@@ -23,7 +23,7 @@ const drawmap = async ()=>{
     const zonesMesh = topojson.mesh(nyc, nyc.objects.taxi_zones);
     
     const scale = 0.01;
-    let map = d3.select('svg#map');
+    let map = d3.select('svg#map').attr('transform','scale(1,-1)');
     const mapWidth = map.attr("width"), 
         mapHeight = map.attr("height");
         
@@ -41,6 +41,10 @@ const drawmap = async ()=>{
     
     zonesMap.attr("class", "zones").attr('d',path)
     .on("click", center);
+
+    viewport.append('path')
+        .attr("class", "zone-borders")
+        .attr('d',path(zonesMesh));
     
     var centered=null;
 
@@ -104,10 +108,6 @@ const drawmap = async ()=>{
     function centerLocationId (locationId){
         center(zones[locationId-1])
     }
-
-    viewport.append('path')
-        .attr("class", "zone-borders")
-        .attr('d',path(zonesMesh));
 
     // var zoom = d3.zoom()
     // .scaleExtent(scaleExtent)
