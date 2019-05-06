@@ -22,7 +22,7 @@ const drawmap = async ()=>{
     
     const zonesMesh = topojson.mesh(nyc, nyc.objects.taxi_zones);
     
-    const scale = 0.01;
+    const scale = 0.02;
     let map = d3.select('svg#map').attr('transform','scale(1,-1)');
     const mapWidth = map.attr("width"), 
         mapHeight = map.attr("height");
@@ -242,7 +242,7 @@ const handleSearch = async (centerLocationId,locatePointByLocationID)=>{
             var predictions;
             var now = new Date();
             
-            await axios.get(host+'/ml/customer',{
+            await axios.get(host+'/ml/all',{
                 params:{
                     'time': (2018)+'-'+(2)+'-'+now.getDate()+' '+padZero(now.getHours())+':'+padZero(now.getMinutes())+':'+padZero(now.getSeconds()),
                     'locationID': parseInt(elem.LocationID)

@@ -5,7 +5,7 @@ const path = require('path');
 var request = require('request')
 var async = require('async');
 const dbHost = 'http://a06e0d2c96d5b11e983460ebc79e1f0f-1093846990.us-east-1.elb.amazonaws.com:8888';
-const mlHost = "http://a6c3f9e916fab11e983460ebc79e1f0f-1633208552.us-east-1.elb.amazonaws.com:8889";
+const mlHost = "http://a26fec738700b11e983460ebc79e1f0f-1584469044.us-east-1.elb.amazonaws.com:8889";
 const manhattan_zones = require('./manhattan_zones.json')
 const zones_distance = require('./distances.json');
 
@@ -15,6 +15,33 @@ app.use(express.static('public'));
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname+'/index.html'))
   
+})
+
+app.get('/ml/all', function(req,res){
+  let {time,locationID} = req.query;
+  let params = {
+    'time': time,
+    'PULocationID': parseInt(locationID)
+  }
+  
+  request.get(mlHost+'/all', {
+    json: true,
+    body: params
+  },function(err, response){
+    if(err){
+      console.log(err)
+    }
+    let result=[];
+    for(let i=0;i<response.body.length;i++){
+      result.push({
+        estimatedPassengers: response.body.customer[i],
+        estimatedProfit: response.body.fare[i],
+        locationID: response.body.locationID[i],
+        distance: distance(response.body.locationID[i],locationID)
+      })
+    }
+    res.send(result)
+  })
 })
 
 app.get('/ml/customer', function(req,res){
@@ -80,14 +107,15 @@ app.get('/ml/customer', function(req,res){
       res.send(sortedResult.slice(0,5));
     }
   })
-  function distance(id1, id2){
-    let dx = (zones_distance[id1][0]-zones_distance[id2][0]),
-    dy = (zones_distance[id1][1]-zones_distance[id2][1]);
-    return Math.sqrt(dx*dx+dy*dy)/1000;
-  }
   
 
 })
+
+function distance(id1, id2){
+  let dx = (zones_distance[id1][0]-zones_distance[id2][0]),
+  dy = (zones_distance[id1][1]-zones_distance[id2][1]);
+  return Math.sqrt(dx*dx+dy*dy)/1000;
+}
 
 app.listen(3000,function(err){
     console.log("Server listening on port!");
